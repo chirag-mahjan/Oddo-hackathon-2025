@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SkillSwap - Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      color: white;
+    }
+
+    canvas#spiderCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+      position: relative;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .logout-btn {
+      background: #ff7675;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .container {
+      padding: 60px 20px;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .welcome {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .details {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .details h3 {
+      color: #00cec9;
+      margin-bottom: 10px;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #00cec9, #6c5ce7);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00c9ff;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="spiderCanvas"></canvas>
+
+  <div class="header">
+    <div class="logo">🏠 Dashboard</div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="search.html">Search</a>
+      <a href="swaps.html">My Swaps</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="welcome" id="welcomeText">Welcome!</div>
+
+    <div class="details" id="userDetails"></div>
+
+    <div class="btn-group">
+      <a class="btn" href="search.html">🔍 Search Skills</a>
+      <a class="btn" href="swaps.html">📬 My Requests</a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Logged out!</div>
+
+  <script>
+    // Check login status
+    const saved = localStorage.getItem('skillSwapDB');
+    const db = saved ? JSON.parse(saved) : { users: [], currentUser: null, swapRequests: [] };
+    const user = db.currentUser;
+
+    if (!user || !user.email) {
+      alert("Please login first.");
+      window.location.href = 'skillswap_login.html';
+    }
+
+    document.getElementById("welcomeText").textContent = `Welcome, ${user.fullName}!`;
+    document.getElementById("userDetails").innerHTML = `
+      <h3>📍 Location:</h3>
+      <p>${user.location}</p>
+      <h3>🧠 Skills You Offer:</h3>
+      <p>${user.skillsOffered.join(", ")}</p>
+      <h3>🎯 Skills You Want:</h3>
+      <p>${user.skillsWanted.join(", ")}</p>
+      <h3>🕒 Availability:</h3>
+      <p>${user.availability}</p>
+    `;
+
+    function logout() {
+      db.currentUser = null;
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      const toast = document.getElementById("toast");
+      toast.style.display = "block";
+      setTimeout(() => {
+        window.location.href = "skillswap_login.html";
+      }, 1500);
+    }
+  </script>
+
+  <script>
+    // Spider Web Background
+    const canvas = document.getElementById('spiderCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let points = [];
+    for (let i = 0; i < 60; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5),
+        vy: (Math.random() - 0.5)
+      });
+    }
+
+    const mouse = { x: null, y: null };
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    function drawWeb() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of points) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          let dx = points[i].x - points[j].x;
+          let dy = points[i].y - points[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[j].x, points[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      if (mouse.x && mouse.y) {
+        for (let i = 0; i < points.length; i++) {
+          let dx = points[i].x - mouse.x;
+          let dy = points[i].y - mouse.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 150})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(drawWeb);
+    }
+
+    drawWeb();
+  </script>
+</body>
+</html>

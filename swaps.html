@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SkillSwap - My Swaps</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    canvas#spiderCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+      position: relative;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .logout-btn {
+      background: #ff7675;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .container {
+      padding: 40px 20px;
+      max-width: 900px;
+      margin: auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .swap-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .swap-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .swap-title {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #ffd700;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00c9ff;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="spiderCanvas"></canvas>
+
+  <div class="header">
+    <div class="logo">🔄 My Swaps</div>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="search.html">Search</a>
+      <a href="swaps.html">My Swaps</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>📬 Sent Swap Requests</h2>
+    <div id="swapsList"></div>
+  </div>
+
+  <div class="toast" id="toast">Toast message</div>
+
+  <script>
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    if (!window.skillSwapDB) {
+      const saved = localStorage.getItem('skillSwapDB');
+      window.skillSwapDB = saved ? JSON.parse(saved) : { users: [], currentUser: null, swapRequests: [] };
+    }
+
+    const currentUser = window.skillSwapDB.currentUser;
+    const swapRequests = window.skillSwapDB.swapRequests || [];
+
+    if (!currentUser || !currentUser.email) {
+      alert("Please login first.");
+      window.location.href = 'skillswap_login.html';
+    }
+
+    function renderSwaps() {
+      const container = document.getElementById('swapsList');
+      const mySwaps = swapRequests.filter(s => s.from === currentUser.email);
+
+      if (mySwaps.length === 0) {
+        container.innerHTML = '<p>No swap requests sent yet.</p>';
+        return;
+      }
+
+      container.innerHTML = mySwaps.map(swap => `
+        <div class="swap-card">
+          <div class="swap-title">To: ${swap.toName}</div>
+          <p><strong>🧠 You Offer:</strong> ${swap.skillOffered}</p>
+          <p><strong>🎯 You Want:</strong> ${swap.skillWanted}</p>
+          <p><strong>Status:</strong> ${swap.status}</p>
+        </div>
+      `).join('');
+    }
+
+    function logout() {
+      window.skillSwapDB.currentUser = null;
+      localStorage.setItem('skillSwapDB', JSON.stringify(window.skillSwapDB));
+      showToast("Logged out!");
+      setTimeout(() => window.location.href = 'skillswap_login.html', 1500);
+    }
+
+    renderSwaps();
+  </script>
+
+  <script>
+    // Spider Web Background
+    const canvas = document.getElementById('spiderCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let points = [];
+    for (let i = 0; i < 60; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5),
+        vy: (Math.random() - 0.5)
+      });
+    }
+
+    const mouse = { x: null, y: null };
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    function drawWeb() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of points) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          let dx = points[i].x - points[j].x;
+          let dy = points[i].y - points[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[j].x, points[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      if (mouse.x && mouse.y) {
+        for (let i = 0; i < points.length; i++) {
+          let dx = points[i].x - mouse.x;
+          let dy = points[i].y - mouse.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 150})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(drawWeb);
+    }
+
+    drawWeb();
+  </script>
+</body>
+</html>
