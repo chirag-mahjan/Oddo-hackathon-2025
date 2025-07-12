@@ -1,570 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkillSwap - Connect & Exchange Skills</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <title>SkillSwap - Login/Register</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      overflow: hidden;
+      color: white;
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+    canvas#spiderCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
 
-        /* Animated background elements */
-        .bg-shapes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
 
-        .shape {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
+    .box {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 480px;
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      animation: popin 1s ease-out;
+    }
 
-        .shape:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            top: 20%;
-            left: 20%;
-            animation-delay: 0s;
-        }
+    .tabs {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
 
-        .shape:nth-child(2) {
-            width: 120px;
-            height: 120px;
-            top: 60%;
-            left: 80%;
-            animation-delay: 2s;
-        }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      border-radius: 10px;
+      margin: 0 5px;
+      transition: 0.3s;
+      font-weight: bold;
+    }
 
-        .shape:nth-child(3) {
-            width: 60px;
-            height: 60px;
-            top: 80%;
-            left: 30%;
-            animation-delay: 4s;
-        }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #00cec9, #6c5ce7);
+    }
 
-        .shape:nth-child(4) {
-            width: 100px;
-            height: 100px;
-            top: 10%;
-            left: 70%;
-            animation-delay: 1s;
-        }
+    .form-group {
+      margin-bottom: 16px;
+    }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 16px;
+    }
 
-        /* Main container */
-        .login-container {
-            position: relative;
-            z-index: 2;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            padding: 3rem;
-            min-width: 400px;
-            max-width: 450px;
-            width: 90%;
-            animation: slideIn 0.8s ease-out;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #00cec9, #6c5ce7);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
 
-        /* Logo and branding */
-        .logo-section {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 2rem;
-            color: white;
-            font-weight: bold;
-            animation: pulse 2s infinite;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .brand-name {
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        .tagline {
-            color: #666;
-            font-size: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        /* Form styles */
-        .form-group {
-            margin-bottom: 1.5rem;
-            position: relative;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .form-group input:focus + .input-animation {
-            transform: scaleX(1);
-        }
-
-        .input-animation {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        /* Button styles */
-        .btn-primary {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-
-        /* Toggle buttons */
-        .toggle-buttons {
-            display: flex;
-            margin-bottom: 2rem;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 0.25rem;
-        }
-
-        .toggle-btn {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            color: #666;
-        }
-
-        .toggle-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Links */
-        .links {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-
-        .links a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .links a:hover {
-            color: #764ba2;
-        }
-
-        /* Forgot password */
-        .forgot-password {
-            text-align: right;
-            margin-top: 0.5rem;
-        }
-
-        .forgot-password a {
-            color: #666;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-password a:hover {
-            color: #667eea;
-        }
-
-        /* Success message */
-        .success-message {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-            color: white;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-weight: 500;
-            display: none;
-            animation: slideDown 0.5s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive design */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 2rem;
-                min-width: 320px;
-            }
-
-            .brand-name {
-                font-size: 1.5rem;
-            }
-
-            .logo {
-                width: 60px;
-                height: 60px;
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Skill icons floating animation */
-        .skill-icons {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .skill-icon {
-            position: absolute;
-            font-size: 2rem;
-            color: rgba(255, 255, 255, 0.6);
-            animation: skillFloat 8s ease-in-out infinite;
-        }
-
-        .skill-icon:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
-        .skill-icon:nth-child(2) { top: 25%; right: 15%; animation-delay: 2s; }
-        .skill-icon:nth-child(3) { bottom: 30%; left: 15%; animation-delay: 4s; }
-        .skill-icon:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 6s; }
-
-        @keyframes skillFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
-            50% { transform: translateY(-30px) rotate(180deg); opacity: 0.8; }
-        }
-    </style>
+    @keyframes popin {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
-    <!-- Animated background shapes -->
-    <div class="bg-shapes">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
+  <canvas id="spiderCanvas"></canvas>
+
+  <div class="container">
+    <div class="box">
+      <div class="tabs">
+        <div class="tab-btn active" onclick="showTab('login')">Login</div>
+        <div class="tab-btn" onclick="showTab('register')">Register</div>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginTab">
+        <div class="form-group">
+          <input type="text" id="loginEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="loginPassword" placeholder="Password">
+        </div>
+        <button class="btn" onclick="handleLogin()">Login</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerTab" style="display: none;">
+        <div class="form-group">
+          <input type="text" id="registerName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="registerPassword" placeholder="Password">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerLocation" placeholder="Location (e.g., Mumbai)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerSkillsOffered" placeholder="Skills Offered (comma separated)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerSkillsWanted" placeholder="Skills Wanted (comma separated)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerAvailability" placeholder="Availability (Weekends, Evenings, etc)">
+        </div>
+        <button class="btn" onclick="handleRegister()">Register</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Floating skill icons -->
-    <div class="skill-icons">
-        <div class="skill-icon">💻</div>
-        <div class="skill-icon">🎨</div>
-        <div class="skill-icon">📊</div>
-        <div class="skill-icon">🎵</div>
-    </div>
+  <script>
+    function showTab(tab) {
+      document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerTab').style.display = tab === 'register' ? 'block' : 'none';
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tab-btn:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+    }
 
-    <!-- Main login container -->
-    <div class="login-container">
-        <!-- Logo and branding -->
-        <div class="logo-section">
-            <div class="logo">SS</div>
-            <h1 class="brand-name">SkillSwap</h1>
-            <p class="tagline">Connect, Learn, and Exchange Skills</p>
-        </div>
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
 
-        <!-- Toggle between Login and Register -->
-        <div class="toggle-buttons">
-            <button class="toggle-btn active" onclick="showLogin()">Login</button>
-            <button class="toggle-btn" onclick="showRegister()">Register</button>
-        </div>
+      let db = JSON.parse(localStorage.getItem('skillSwapDB') || '{"users":[],"currentUser":null,"swapRequests":[]}');
+      const user = db.users.find(u => u.email === email && u.password === password);
 
-        <!-- Success message -->
-        <div class="success-message" id="successMessage">
-            Welcome to SkillSwap! 🎉
-        </div>
+      if (!user) {
+        alert('Invalid credentials');
+        return;
+      }
 
-        <!-- Login Form -->
-        <form id="loginForm" class="auth-form">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-                <div class="input-animation"></div>
-            </div>
+      db.currentUser = user;
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      window.location.href = 'index.html';
+    }
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-                <div class="input-animation"></div>
-            </div>
+    function handleRegister() {
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value.trim();
+      const location = document.getElementById('registerLocation').value.trim();
+      const skillsOffered = document.getElementById('registerSkillsOffered').value.trim().split(',').map(s => s.trim()).filter(s => s);
+      const skillsWanted = document.getElementById('registerSkillsWanted').value.trim().split(',').map(s => s.trim()).filter(s => s);
+      const availability = document.getElementById('registerAvailability').value.trim();
 
-            <div class="forgot-password">
-                <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
-            </div>
+      if (!name || !email || !password || !location || !availability || skillsOffered.length === 0 || skillsWanted.length === 0) {
+        alert('Please fill in all fields');
+        return;
+      }
 
-            <button type="submit" class="btn-primary">
-                Sign In
-            </button>
-        </form>
+      let db = JSON.parse(localStorage.getItem('skillSwapDB') || '{"users":[],"currentUser":null,"swapRequests":[]}');
 
-        <!-- Register Form -->
-        <form id="registerForm" class="auth-form" style="display: none;">
-            <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" required>
-                <div class="input-animation"></div>
-            </div>
+      if (db.users.find(u => u.email === email)) {
+        alert('User already exists');
+        return;
+      }
 
-            <div class="form-group">
-                <label for="regEmail">Email</label>
-                <input type="email" id="regEmail" name="email" required>
-                <div class="input-animation"></div>
-            </div>
+      const newUser = {
+        fullName: name,
+        email: email,
+        password: password,
+        location: location,
+        skillsOffered: skillsOffered,
+        skillsWanted: skillsWanted,
+        availability: availability,
+        isPublic: true
+      };
 
-            <div class="form-group">
-                <label for="regPassword">Password</label>
-                <input type="password" id="regPassword" name="password" required>
-                <div class="input-animation"></div>
-            </div>
+      db.users.push(newUser);
+      db.currentUser = newUser;
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      window.location.href = 'index.html';
+    }
 
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required>
-                <div class="input-animation"></div>
-            </div>
+    // Spider Web Background Script
+    const canvas = document.getElementById('spiderCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-            <button type="submit" class="btn-primary">
-                Create Account
-            </button>
-        </form>
+    let points = [];
+    for (let i = 0; i < 60; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5),
+        vy: (Math.random() - 0.5)
+      });
+    }
 
-        <!-- Links -->
-        <div class="links">
-            <p>By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
-        </div>
-    </div>
+    const mouse = { x: null, y: null };
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
 
-    <script>
-        // Toggle between login and register forms
-        function showLogin() {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-            document.querySelectorAll('.toggle-btn')[0].classList.add('active');
-            document.querySelectorAll('.toggle-btn')[1].classList.remove('active');
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of points) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          let dx = points[i].x - points[j].x;
+          let dy = points[i].y - points[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[j].x, points[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.stroke();
+          }
         }
+      }
 
-        function showRegister() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-            document.querySelectorAll('.toggle-btn')[0].classList.remove('active');
-            document.querySelectorAll('.toggle-btn')[1].classList.add('active');
+      if (mouse.x && mouse.y) {
+        for (let i = 0; i < points.length; i++) {
+          let dx = points[i].x - mouse.x;
+          let dy = points[i].y - mouse.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 150})`;
+            ctx.stroke();
+          }
         }
+      }
 
-        function showForgotPassword() {
-            alert('Forgot password functionality would redirect to password reset page.');
-        }
+      requestAnimationFrame(draw);
+    }
 
-        // Form submission handlers
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            showSuccessMessage();
-            // Here you would typically send the login data to your backend
-            setTimeout(() => {
-                window.location.href = 'index.html'; // Redirect to index
-            }, 2000);
-        });
-
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                alert('Passwords do not match!');
-                return;
-            }
-            
-            showSuccessMessage();
-            // Here you would typically send the registration data to your backend
-            setTimeout(() => {
-                showLogin();
-            }, 2000);
-        });
-
-        function showSuccessMessage() {
-            const successMessage = document.getElementById('successMessage');
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        // Add floating animation to form inputs
-        document.querySelectorAll('input').forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'translateY(-2px)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'translateY(0)';
-            });
-        });
-
-        // Add particle effect on button click
-        document.querySelectorAll('.btn-primary').forEach(button => {
-            button.addEventListener('click', function(e) {
-                const rect = this.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const ripple = document.createElement('div');
-                ripple.style.position = 'absolute';
-                ripple.style.borderRadius = '50%';
-                ripple.style.background = 'rgba(255, 255, 255, 0.6)';
-                ripple.style.transform = 'scale(0)';
-                ripple.style.animation = 'ripple 0.6s linear';
-                ripple.style.left = (x - 10) + 'px';
-                ripple.style.top = (y - 10) + 'px';
-                ripple.style.width = '20px';
-                ripple.style.height = '20px';
-                
-                this.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
-
-        // Add ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+    draw();
+  </script>
 </body>
 </html>
