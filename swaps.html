@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>SkillSwap - Dashboard</title>
+  <meta charset="UTF-8">
+  <title>SkillSwap - My Swaps</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: #000;
       color: white;
+      overflow-x: hidden;
     }
 
     canvas#spiderCanvas {
@@ -45,6 +46,11 @@
       padding: 8px 12px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .logout-btn {
@@ -58,54 +64,38 @@
     }
 
     .container {
-      padding: 60px 20px;
-      max-width: 800px;
+      padding: 40px 20px;
+      max-width: 900px;
       margin: auto;
-      text-align: center;
       position: relative;
       z-index: 1;
     }
 
-    .welcome {
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-
-    .details {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(8px);
-      border-radius: 15px;
-      padding: 30px;
+    .swap-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 25px;
       margin-bottom: 30px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease-in-out;
     }
 
-    .details h3 {
-      color: #00cec9;
+    .swap-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    }
+
+    .swap-title {
+      font-size: 1.2rem;
       margin-bottom: 10px;
+      color: #ffd700;
     }
 
-    .btn-group {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 12px 24px;
-      background: linear-gradient(135deg, #00cec9, #6c5ce7);
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
     }
 
     .toast {
@@ -128,9 +118,9 @@
   <canvas id="spiderCanvas"></canvas>
 
   <div class="header">
-    <div class="logo">🏠 Dashboard</div>
+    <div class="logo">🔄 My Swaps</div>
     <div class="nav-links">
-      <a href="index.html">Home</a>
+      <a href="index.html">Dashboard</a>
       <a href="search.html">Search</a>
       <a href="swaps.html">My Swaps</a>
       <button class="logout-btn" onclick="logout()">Logout</button>
@@ -138,50 +128,62 @@
   </div>
 
   <div class="container">
-    <div class="welcome" id="welcomeText">Welcome!</div>
-
-    <div class="details" id="userDetails"></div>
-
-    <div class="btn-group">
-      <a class="btn" href="search.html">🔍 Search Skills</a>
-      <a class="btn" href="swaps.html">📬 My Requests</a>
-    </div>
+    <h2>📬 Sent Swap Requests</h2>
+    <div id="swapsList"></div>
   </div>
 
-  <div class="toast" id="toast">Logged out!</div>
+  <div class="toast" id="toast">Toast message</div>
 
   <script>
-    // Check login status
-    const saved = localStorage.getItem('skillSwapDB');
-    const db = saved ? JSON.parse(saved) : { users: [], currentUser: null, swapRequests: [] };
-    const user = db.currentUser;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.innerText = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
 
-    if (!user || !user.email) {
+    if (!window.skillSwapDB) {
+      const saved = localStorage.getItem('skillSwapDB');
+      window.skillSwapDB = saved ? JSON.parse(saved) : { users: [], currentUser: null, swapRequests: [] };
+    }
+
+    const currentUser = window.skillSwapDB.currentUser;
+    const swapRequests = window.skillSwapDB.swapRequests || [];
+
+    if (!currentUser || !currentUser.email) {
       alert("Please login first.");
       window.location.href = 'skillswap_login.html';
     }
 
-    document.getElementById("welcomeText").textContent = `Welcome, ${user.fullName}!`;
-    document.getElementById("userDetails").innerHTML = `
-      <h3>📍 Location:</h3>
-      <p>${user.location}</p>
-      <h3>🧠 Skills You Offer:</h3>
-      <p>${user.skillsOffered.join(", ")}</p>
-      <h3>🎯 Skills You Want:</h3>
-      <p>${user.skillsWanted.join(", ")}</p>
-      <h3>🕒 Availability:</h3>
-      <p>${user.availability}</p>
-    `;
+    function renderSwaps() {
+      const container = document.getElementById('swapsList');
+      const mySwaps = swapRequests.filter(s => s.from === currentUser.email);
+
+      if (mySwaps.length === 0) {
+        container.innerHTML = '<p>No swap requests sent yet.</p>';
+        return;
+      }
+
+      container.innerHTML = mySwaps.map(swap => `
+        <div class="swap-card">
+          <div class="swap-title">To: ${swap.toName}</div>
+          <p><strong>🧠 You Offer:</strong> ${swap.skillOffered}</p>
+          <p><strong>🎯 You Want:</strong> ${swap.skillWanted}</p>
+          <p><strong>Status:</strong> ${swap.status}</p>
+        </div>
+      `).join('');
+    }
 
     function logout() {
-      db.currentUser = null;
-      localStorage.setItem('skillSwapDB', JSON.stringify(db));
-      const toast = document.getElementById("toast");
-      toast.style.display = "block";
-      setTimeout(() => {
-        window.location.href = "skillswap_login.html";
-      }, 1500);
+      window.skillSwapDB.currentUser = null;
+      localStorage.setItem('skillSwapDB', JSON.stringify(window.skillSwapDB));
+      showToast("Logged out!");
+      setTimeout(() => window.location.href = 'skillswap_login.html', 1500);
     }
+
+    renderSwaps();
   </script>
 
   <script>

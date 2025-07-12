@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SkillSwap - Login/Register</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #000;
+      overflow: hidden;
+      color: white;
+    }
+
+    canvas#spiderCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .box {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 480px;
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      animation: popin 1s ease-out;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      border-radius: 10px;
+      margin: 0 5px;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #00cec9, #6c5ce7);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 16px;
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #00cec9, #6c5ce7);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    @keyframes popin {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="spiderCanvas"></canvas>
+
+  <div class="container">
+    <div class="box">
+      <div class="tabs">
+        <div class="tab-btn active" onclick="showTab('login')">Login</div>
+        <div class="tab-btn" onclick="showTab('register')">Register</div>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginTab">
+        <div class="form-group">
+          <input type="text" id="loginEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="loginPassword" placeholder="Password">
+        </div>
+        <button class="btn" onclick="handleLogin()">Login</button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerTab" style="display: none;">
+        <div class="form-group">
+          <input type="text" id="registerName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerEmail" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" id="registerPassword" placeholder="Password">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerLocation" placeholder="Location (e.g., Mumbai)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerSkillsOffered" placeholder="Skills Offered (comma separated)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerSkillsWanted" placeholder="Skills Wanted (comma separated)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="registerAvailability" placeholder="Availability (Weekends, Evenings, etc)">
+        </div>
+        <button class="btn" onclick="handleRegister()">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tab) {
+      document.getElementById('loginTab').style.display = tab === 'login' ? 'block' : 'none';
+      document.getElementById('registerTab').style.display = tab === 'register' ? 'block' : 'none';
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.tab-btn:nth-child(${tab === 'login' ? 1 : 2})`).classList.add('active');
+    }
+
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      let db = JSON.parse(localStorage.getItem('skillSwapDB') || '{"users":[],"currentUser":null,"swapRequests":[]}');
+      const user = db.users.find(u => u.email === email && u.password === password);
+
+      if (!user) {
+        alert('Invalid credentials');
+        return;
+      }
+
+      db.currentUser = user;
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      window.location.href = 'index.html';
+    }
+
+    function handleRegister() {
+      const name = document.getElementById('registerName').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value.trim();
+      const location = document.getElementById('registerLocation').value.trim();
+      const skillsOffered = document.getElementById('registerSkillsOffered').value.trim().split(',').map(s => s.trim()).filter(s => s);
+      const skillsWanted = document.getElementById('registerSkillsWanted').value.trim().split(',').map(s => s.trim()).filter(s => s);
+      const availability = document.getElementById('registerAvailability').value.trim();
+
+      if (!name || !email || !password || !location || !availability || skillsOffered.length === 0 || skillsWanted.length === 0) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      let db = JSON.parse(localStorage.getItem('skillSwapDB') || '{"users":[],"currentUser":null,"swapRequests":[]}');
+
+      if (db.users.find(u => u.email === email)) {
+        alert('User already exists');
+        return;
+      }
+
+      const newUser = {
+        fullName: name,
+        email: email,
+        password: password,
+        location: location,
+        skillsOffered: skillsOffered,
+        skillsWanted: skillsWanted,
+        availability: availability,
+        isPublic: true
+      };
+
+      db.users.push(newUser);
+      db.currentUser = newUser;
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      window.location.href = 'index.html';
+    }
+
+    // Spider Web Background Script
+    const canvas = document.getElementById('spiderCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let points = [];
+    for (let i = 0; i < 60; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5),
+        vy: (Math.random() - 0.5)
+      });
+    }
+
+    const mouse = { x: null, y: null };
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of points) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          let dx = points[i].x - points[j].x;
+          let dy = points[i].y - points[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[j].x, points[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      if (mouse.x && mouse.y) {
+        for (let i = 0; i < points.length; i++) {
+          let dx = points[i].x - mouse.x;
+          let dy = points[i].y - mouse.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 150})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

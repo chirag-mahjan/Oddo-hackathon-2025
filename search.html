@@ -1,30 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Search - SkillSwap</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #00c9ff, #92fe9d);
-      color: #333;
+      background: #000;
+      color: #fff;
+    }
+
+    canvas#spiderCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
     }
 
     h2 {
       text-align: center;
       margin-top: 30px;
       color: #fff;
+      z-index: 1;
+      position: relative;
       text-shadow: 1px 1px 3px #000;
     }
 
     .search-container {
       max-width: 600px;
       margin: 20px auto;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(8px);
       padding: 20px;
       border-radius: 15px;
+      position: relative;
+      z-index: 1;
     }
 
     input {
@@ -34,15 +45,17 @@
       border: none;
       font-size: 16px;
       margin-bottom: 20px;
+      background: #1e1e1e;
+      color: white;
     }
 
     .result {
-      background: white;
-      color: #333;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
       padding: 15px;
       margin-bottom: 15px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 
     button {
@@ -53,6 +66,7 @@
       border-radius: 8px;
       font-weight: bold;
       transition: 0.3s ease;
+      cursor: pointer;
     }
 
     button:hover {
@@ -68,24 +82,178 @@
       color: white;
       font-weight: bold;
       text-decoration: none;
+      z-index: 1;
+      position: relative;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00c9ff;
+      color: black;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
+  <canvas id="spiderCanvas"></canvas>
+
   <h2>Search People by Skills</h2>
   <div class="search-container">
-    <input type="text" placeholder="Search Skill...">
-    <div class="result">
-      <strong>Rahul (Ahmedabad)</strong><br>
-      Offers: Photoshop | Wants: English<br>
-      <button>Send Swap Request</button>
-    </div>
-    <div class="result">
-      <strong>Aisha (Delhi)</strong><br>
-      Offers: English | Wants: Excel<br>
-      <button>Send Swap Request</button>
-    </div>
+    <input type="text" id="skillSearch" placeholder="Search Skill...">
+    <div id="results"></div>
   </div>
   <a href="index.html" class="back">← Back to Home</a>
+
+  <div class="toast" id="toast">Toast message</div>
+
+  <script>
+    // Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => toast.style.display = 'none', 3000);
+    }
+
+    // Load DB
+    const db = JSON.parse(localStorage.getItem('skillSwapDB') || '{"users":[],"currentUser":null,"swapRequests":[]}');
+    const currentUser = db.currentUser;
+
+    if (!currentUser) {
+      alert("Login required");
+      window.location.href = "skillswap_login.html";
+    }
+
+    const resultsDiv = document.getElementById('results');
+    const input = document.getElementById('skillSearch');
+
+    function renderResults(filter = "") {
+      const matches = db.users.filter(u =>
+        u.email !== currentUser.email &&
+        u.skillsOffered.some(skill =>
+          skill.toLowerCase().includes(filter.toLowerCase())
+        )
+      );
+
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = "<p>No users found with that skill.</p>";
+        return;
+      }
+
+      resultsDiv.innerHTML = matches.map(user => `
+        <div class="result">
+          <strong>${user.fullName} (${user.location})</strong><br>
+          Offers: ${user.skillsOffered.join(" | ")}<br>
+          Wants: ${user.skillsWanted.join(" | ")}<br>
+          <button onclick="sendRequest('${user.email}')">Send Swap Request</button>
+        </div>
+      `).join("");
+    }
+
+    function sendRequest(toEmail) {
+      const toUser = db.users.find(u => u.email === toEmail);
+      if (!toUser) return;
+
+      // Basic match: first matching skill
+      const skillOffered = currentUser.skillsOffered.find(s => toUser.skillsWanted.includes(s)) || currentUser.skillsOffered[0];
+      const skillWanted = toUser.skillsOffered.find(s => currentUser.skillsWanted.includes(s)) || toUser.skillsOffered[0];
+
+      db.swapRequests.push({
+        from: currentUser.email,
+        to: toEmail,
+        toName: toUser.fullName,
+        skillOffered,
+        skillWanted,
+        status: "Pending"
+      });
+
+      localStorage.setItem('skillSwapDB', JSON.stringify(db));
+      showToast("Swap request sent!");
+    }
+
+    input.addEventListener("input", () => {
+      renderResults(input.value);
+    });
+
+    renderResults();
+
+    // Spider Web
+    const canvas = document.getElementById('spiderCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let points = [];
+    for (let i = 0; i < 60; i++) {
+      points.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5),
+        vy: (Math.random() - 0.5)
+      });
+    }
+
+    const mouse = { x: null, y: null };
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of points) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          let dx = points[i].x - points[j].x;
+          let dy = points[i].y - points[j].y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(points[j].x, points[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 120})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      if (mouse.x && mouse.y) {
+        for (let i = 0; i < points.length; i++) {
+          let dx = points[i].x - mouse.x;
+          let dy = points[i].y - mouse.y;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(points[i].x, points[i].y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.strokeStyle = `rgba(255,255,255,${1 - dist / 150})`;
+            ctx.stroke();
+          }
+        }
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
 </body>
 </html>
