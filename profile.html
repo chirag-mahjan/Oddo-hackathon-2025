@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile - SkillSwap</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #654ea3, #eaafc8);
+      color: white;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    h2 {
+      text-align: center;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    input, select {
+      background: #fff;
+      color: #333;
+    }
+
+    button {
+      background-color: #fff;
+      color: #654ea3;
+      font-weight: bold;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    button:hover {
+      background-color: #f5f5f5;
+      transform: scale(1.05);
+    }
+
+    .back {
+      display: inline-block;
+      margin-top: 10px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Your Skill Profile</h2>
+    <form>
+      <input type="text" placeholder="Your Name">
+      <input type="text" placeholder="Location (optional)">
+      <input type="text" placeholder="Skills You Offer (e.g., Excel, Guitar)">
+      <input type="text" placeholder="Skills You Want (e.g., English, Photoshop)">
+      <select>
+        <option>Available on Weekends</option>
+        <option>Available Evenings</option>
+      </select>
+      <button type="submit">Save Profile</button>
+    </form>
+    <a href="index.html" class="back">← Back to Home</a>
+  </div>
+</body>
+</html>

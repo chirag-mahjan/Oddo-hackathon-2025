@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SkillSwap - Learn by Sharing</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f2027;
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      color: white;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px #000;
+    }
+
+    p {
+      font-size: 1.5rem;
+      max-width: 600px;
+      text-shadow: 1px 1px 3px #000;
+    }
+
+    .cta {
+      margin-top: 30px;
+    }
+
+    .cta a {
+      text-decoration: none;
+      background: white;
+      color: #4b7bec;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 30px;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .cta a:hover {
+      background: #dff9fb;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div class="hero">
+    <h1>SkillSwap</h1>
+    <p>Learn anything by sharing what you know. Swap your skills with others — no money needed.</p>
+    <div class="cta">
+      <a href="profile.html">List Your Skills</a>
+      <a href="search.html">Browse Skills</a>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let particles = [];
+
+    for (let i = 0; i < 100; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5,
+        color: `hsl(${Math.random() * 360}, 100%, 70%)`
+      });
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+      }
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
